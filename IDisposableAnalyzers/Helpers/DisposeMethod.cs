@@ -27,15 +27,20 @@ internal static class DisposeMethod
             {
                 return topLevel;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
-        return type.TryFindFirstMethodRecursive("Dispose", x => IsMatch(x), out var recursive)
-            ? recursive
-            : null;
+        if (type.TryFindFirstMethodRecursive("Dispose", x => IsMatch(x), out var recursive))
+        {
+            return recursive;
+        }
+        else if (type.TryFindFirstMethodRecursive("System.IDisposable.Dispose", out recursive))
+        {
+            return recursive;
+        }
+
+        return null;
 
         static bool IsMatch(IMethodSymbol candidate)
         {
@@ -101,14 +106,28 @@ internal static class DisposeMethod
 
         if (search == Search.TopLevel)
         {
-            return type.TryFindFirstMethod("DisposeAsync", x => IsMatch(x), out var topLevel)
-                ? topLevel
-                : null;
+            if (type.TryFindFirstMethod("DisposeAsync", x => IsMatch(x), out var topLevel))
+            {
+                return topLevel;
+            }
+            else if (type.TryFindFirstMethod("System.IAsyncDisposable.DisposeAsync", out topLevel))
+            {
+                return topLevel;
+            }
+
+            return null;
         }
 
-        return type.TryFindFirstMethodRecursive("DisposeAsync", x => IsMatch(x), out var recursive)
-            ? recursive
-            : null;
+        if (type.TryFindFirstMethodRecursive("DisposeAsync", x => IsMatch(x), out var recursive))
+        {
+            return recursive;
+        }
+        else if (type.TryFindFirstMethodRecursive("System.IAsyncDisposable.DisposeAsync", out recursive))
+        {
+            return recursive;
+        }
+
+        return null;
 
         static bool IsMatch(IMethodSymbol candidate)
         {

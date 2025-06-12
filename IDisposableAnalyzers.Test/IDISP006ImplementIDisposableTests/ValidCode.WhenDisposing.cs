@@ -564,5 +564,28 @@ namespace N
 }";
             RoslynAssert.Valid(Analyzer, Disposable, code);
         }
+
+        [Test]
+        public static void AsyncExplicitImplementation()
+        {
+            var code = @"
+namespace N
+{
+    using System;
+    using System.Threading.Tasks;
+
+    public sealed class C : IAsyncDisposable
+    {
+        private readonly Disposable disposable = new Disposable();
+
+        ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            this.disposable.Dispose();
+            return ValueTask.CompletedTask;
+        }
+    }
+}";
+            RoslynAssert.Valid(Analyzer, Disposable, code);
+        }
     }
 }
