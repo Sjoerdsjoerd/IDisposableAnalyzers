@@ -46,10 +46,10 @@ internal sealed class DisposeWalker : ExecutionWalker<DisposeWalker>
         }
 
         if (type.IsAssignableTo(KnownSymbols.IAsyncDisposable, semanticModel.Compilation) &&
-            type.TryFindFirstMethod(x => x is { Parameters.Length: 0 } && x == KnownSymbols.IAsyncDisposable.DisposeAsync, out var disposeAsync) &&
-            disposeAsync.TrySingleDeclaration(cancellationToken, out declaration))
+            DisposeMethod.FindDisposeAsync(type, semanticModel.Compilation, Search.Recursive) is { } asyncDisposeMethod &&
+            asyncDisposeMethod.TrySingleDeclaration(cancellationToken, out MethodDeclarationSyntax? asyncDeclaration))
         {
-            return BorrowAndVisit(declaration, SearchScope.Instance, type, semanticModel, () => new DisposeWalker(), cancellationToken);
+            return BorrowAndVisit(asyncDeclaration, SearchScope.Instance, type, semanticModel, () => new DisposeWalker(), cancellationToken);
         }
 
         return Borrow(() => new DisposeWalker());
