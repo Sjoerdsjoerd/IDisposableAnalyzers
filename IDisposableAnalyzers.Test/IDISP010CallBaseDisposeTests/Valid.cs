@@ -237,6 +237,71 @@ namespace N
     }
 
     [Test]
+    public static void WhenBaseDisposeIsAbstract()
+    {
+        var baseClass = @"
+namespace N
+{
+    using System;
+
+    public abstract class BaseClass : IDisposable
+    {
+        /// <inheritdoc/>
+        public abstract void Dispose();
+    }
+}";
+        var code = @"
+namespace N
+{
+    using System;
+
+    public class C : BaseClass
+    {
+        private readonly IDisposable disposable = new Disposable();
+        private bool disposed;
+
+        public override void Dispose()
+        {
+            if (this.disposed)
+            {
+                return;
+            }
+
+            this.disposed = true;
+            this.disposable.Dispose();
+        }
+    }
+}";
+
+        RoslynAssert.Valid(Analyzer, DisposableCode, baseClass, code);
+    }
+
+    [Test]
+    public static void WhenBaseDisposeIsAbstractAndExternal()
+    {
+        var code = @"
+using System;
+using System.Buffers;
+
+sealed class Manager : MemoryManager<byte>
+    {
+        /// <inheritdoc />
+        public override void Unpin() { }
+
+        /// <inheritdoc />
+        public override MemoryHandle Pin(int elementIndex = 0) => default;
+
+        /// <inheritdoc />
+        public override Span<byte> GetSpan() => default;
+
+        /// <inheritdoc />
+        protected override void Dispose(bool disposing) { } // <-- lint occurs here
+    }";
+
+        RoslynAssert.Valid(Analyzer, code);
+    }
+
+    [Test]
     public static void WhenNoBaseClass()
     {
         var code = @"
